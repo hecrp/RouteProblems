@@ -1,20 +1,36 @@
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 /**
   * Created by hector on 1/14/17.
   */
 
-class Heuristic(problem: Problem) {
+class Heuristic(problem: Problem) extends Multirunnable{
 
   private val notChosenNodes: mutable.HashSet[Int] = new mutable.HashSet()
 
-  var initialSolution = new Solution(problem.graphSize)
-  var bestSolution: Solution = new Solution(problem.graphSize)
+  var initialSolution = new TSPSolution(problem.graphSize)
+  var bestSolution: TSPSolution = new TSPSolution(problem.graphSize)
 
   private var firstNode = 0
   private val ALPHA = 5000
 
-  def NNStrategy(first: Int = 0): Solution = {
+  def TSPNN(firstNode: Int): TSPSolution = {
+    var solution: TSPSolution = NNStrategy(firstNode)
+    cleanObject()
+
+    solution
+  }
+
+  def TSPNN2OPT(first: Int): TSPSolution = {
+    var solution: TSPSolution = NNStrategy(first)
+    solution = TwoOpt()
+    cleanObject()
+
+    solution
+  }
+
+  private def NNStrategy(first: Int = 0): TSPSolution = {
     firstNode = first
     initNotChosenList()
 
@@ -30,7 +46,7 @@ class Heuristic(problem: Problem) {
     initialSolution
   }
 
-  def TwoOpt(): Solution = {
+  private def TwoOpt(): TSPSolution = {
     val size: Int = initialSolution.getSize
     var improve: Int = 0
     //Before generating a "2OPted" solution, the initial is the best
@@ -39,7 +55,7 @@ class Heuristic(problem: Problem) {
     while (improve < ALPHA) {
       for (i <- 0 until (size - 1)) {
         for (k <- (i + 1) until size) {
-          val candidate: Solution = TwoOptSwap(i, k)
+          val candidate: TSPSolution = TwoOptSwap(i, k)
           if (candidate.getLastDistance < bestSolution.getLastDistance) {
             updateSolution(candidate)
             improve = 0
@@ -51,9 +67,9 @@ class Heuristic(problem: Problem) {
     bestSolution
   }
 
-  private def TwoOptSwap(iValue: Int, kValue: Int): Solution = {
+  private def TwoOptSwap(iValue: Int, kValue: Int): TSPSolution = {
     val size: Int = initialSolution.getSize
-    val candidate: Solution = new Solution(problem.graphSize)
+    val candidate: TSPSolution = new TSPSolution(problem.graphSize)
 
     //From 0 to iValue, the elements in the same order as the initial solution
     for(c <- 0 until iValue)
@@ -76,7 +92,7 @@ class Heuristic(problem: Problem) {
     candidate
   }
 
-  private def updateSolution(updated: Solution): Unit = {
+  private def updateSolution(updated: TSPSolution): Unit = {
     bestSolution = updated
   }
 
@@ -86,7 +102,7 @@ class Heuristic(problem: Problem) {
     notChosenNodes.remove(firstNode)
   }
 
-  private def addElementToSolution(node: Int, solution: Solution): Unit = {
+  private def addElementToSolution(node: Int, solution: TSPSolution): Unit = {
     if(solution.isEmpty)
       solution.addElement(node, 0)
     else
@@ -99,10 +115,31 @@ class Heuristic(problem: Problem) {
     var (nearestNode, nearestDistance): (Int, Int) = (-1, Int.MaxValue)
 
     for(node <- notChosenNodes)
-      if(problem.distanceMatrix(initialSolution.getLastNode)(node) < nearestDistance)
-        (nearestNode, nearestDistance) = (node, problem.distanceMatrix(initialSolution.getLastNode)(node))
+      if(problem.distanceMatrix(initialSolution.getLastNode)(node) < nearestDistance) {
+        nearestNode = node
+        nearestDistance = problem.distanceMatrix(initialSolution.getLastNode)(node)
+      }
 
     notChosenNodes.remove(nearestNode)
     nearestNode
+  }
+
+  private def cleanObject(): Unit = {
+    notChosenNodes.clear()
+    initialSolution = new TSPSolution(problem.graphSize)
+    bestSolution = new TSPSolution(problem.graphSize)
+  }
+
+  override def multirun(arguments: List[Any]): List[Solution] = {
+    val solutions = ListBuffer[Solution]()
+
+    for(argument <- arguments){
+      //Cast Any to Int using pattern matching
+      val intArg = argument match {case n:Number => n.intValue()
+        case x => throw new IllegalArgumentException(s"$x is not a number.")}
+
+      solutions.append(TSPNN2OPT(intArg))
+    }
+    solutions.toList
   }
 }
