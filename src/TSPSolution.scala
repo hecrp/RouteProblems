@@ -36,6 +36,8 @@ class TSPSolution(graphSize: Int) extends Solution{
     tour.size
   }
 
+  def clean = tour.clear()
+
   override def toString: String = {
 
     var result: String = ""

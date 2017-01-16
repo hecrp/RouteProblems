@@ -5,7 +5,7 @@ import scala.collection.mutable.ListBuffer
   * Created by hector on 1/14/17.
   */
 
-class Heuristic(problem: Problem) extends Multirunnable{
+class Heuristic(problem: Problem) extends MultiRunnable{
 
   private val notChosenNodes: mutable.HashSet[Int] = new mutable.HashSet()
 
@@ -14,6 +14,7 @@ class Heuristic(problem: Problem) extends Multirunnable{
 
   private var firstNode = 0
   private val ALPHA = 5000
+  private var GRASPListSize = 3
 
   def TSPNN(firstNode: Int): TSPSolution = {
     var solution: TSPSolution = NNStrategy(firstNode)
@@ -28,14 +29,20 @@ class Heuristic(problem: Problem) extends Multirunnable{
     solution
   }
 
-  private def NNStrategy(first: Int = 0): TSPSolution = {
+  private def NNStrategy(first: Int = 0, grasp: Boolean = false): TSPSolution = {
     firstNode = first
     initNotChosenList()
 
     addElementToSolution(firstNode, initialSolution)
+    var nodeToInsert: Int = -1
 
     while(!initialSolution.isComplete) {
-      val nodeToInsert: Int = popNearestNotChosen()
+      if(grasp) {
+        nodeToInsert = popGRASPNotChosen()
+      }
+      else {
+        nodeToInsert = popNearestNotChosen()
+      }
       addElementToSolution(nodeToInsert, initialSolution)
     }
 
@@ -122,13 +129,45 @@ class Heuristic(problem: Problem) extends Multirunnable{
     nearestNode
   }
 
+  private def popGRASPNotChosen(): Int = {
+    var (chosenNode, nearestDistance): (Int, Int) = (-1, Int.MaxValue)
+    //List which contains GRASPListSize elements in which we will extract a random element
+    val GRASPList = new ListBuffer[Int]()
+    //Temporal List used to build GRASPList
+    val temporalGraspNodes =notChosenNodes.clone()
+
+    if(notChosenNodes.size < GRASPListSize)
+      GRASPListSize = notChosenNodes.size
+
+    //We build the GRASPList choosing the nearest not chosen node in each iteration
+    for(i <- 0 until GRASPListSize) {
+      var chosenGRASPNode: Int = -1
+      for(node <- temporalGraspNodes)
+        if(problem.distanceMatrix(initialSolution.getLastNode)(node) < nearestDistance) {
+          chosenGRASPNode = node
+          nearestDistance = problem.distanceMatrix(initialSolution.getLastNode)(node)
+        }
+      //We add the nearest node to the GRASPList
+      temporalGraspNodes.remove(chosenGRASPNode)
+      GRASPList.append(chosenGRASPNode)
+      //Reset the minimum distance
+      nearestDistance = Int.MaxValue
+    }
+
+    //We choose a random element in the GRASPList which will be the node to add in the NNGRASP solution
+    val randomIndex = scala.util.Random.nextInt(GRASPListSize)
+    chosenNode = GRASPList(randomIndex)
+    notChosenNodes.remove(chosenNode)
+    chosenNode
+  }
+
   private def cleanObject(): Unit = {
-    notChosenNodes.clear()
+    notChosenNodes.clear
     initialSolution = new TSPSolution(problem.graphSize)
     bestSolution = new TSPSolution(problem.graphSize)
   }
 
-  override def multirun(arguments: List[Any]): List[Solution] = {
+  override def multiRun(arguments: List[Any]): List[Solution] = {
     val solutions = ListBuffer[Solution]()
 
     for(argument <- arguments){
