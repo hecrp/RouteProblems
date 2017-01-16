@@ -17,7 +17,6 @@ class Heuristic(problem: Problem) extends Multirunnable{
 
   def TSPNN(firstNode: Int): TSPSolution = {
     var solution: TSPSolution = NNStrategy(firstNode)
-    cleanObject()
 
     solution
   }
@@ -25,7 +24,6 @@ class Heuristic(problem: Problem) extends Multirunnable{
   def TSPNN2OPT(first: Int): TSPSolution = {
     var solution: TSPSolution = NNStrategy(first)
     solution = TwoOpt()
-    cleanObject()
 
     solution
   }
@@ -139,6 +137,7 @@ class Heuristic(problem: Problem) extends Multirunnable{
         case x => throw new IllegalArgumentException(s"$x is not a number.")}
 
       solutions.append(TSPNN2OPT(intArg))
+      cleanObject()
     }
     solutions.toList
   }
