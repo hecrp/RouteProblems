@@ -1,6 +1,5 @@
-/**
-  * Created by hector on 1/14/17.
-  */
+package utils
+
 import scala.io.Source
 
 object Parser {

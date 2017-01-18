@@ -1,3 +1,7 @@
+package solvers
+
+import solutions.Solution
+
 /**
   * Created by hector on 1/15/17.
   */
