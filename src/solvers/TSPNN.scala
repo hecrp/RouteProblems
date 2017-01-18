@@ -13,7 +13,7 @@ import scala.collection.mutable.ListBuffer
 
 class TSPNN(problem: RoutingProblem) extends MultiRunnable{
 
-  val twoOPT: RoutingImprover = new TwoOPT(problem)
+  val twoOPT: TwoOPT = new TwoOPT(problem)
 
   def solve(firstNode: Int = 0): RoutingSolution = {
     NNStrategy(firstNode)
