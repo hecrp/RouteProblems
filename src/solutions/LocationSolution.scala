@@ -16,6 +16,10 @@ class LocationSolution(p: Int) extends Solution{
     value = newValue
   }
 
+  def removeElement(locationIndex: Int): Unit = {
+    chosenLocations.remove(locationIndex)
+  }
+
   def isComplete: Boolean = chosenLocations.length == p
 
   def isEmpty: Boolean = chosenLocations.isEmpty

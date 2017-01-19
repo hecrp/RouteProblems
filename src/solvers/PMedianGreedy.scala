@@ -1,5 +1,6 @@
 package solvers
 
+import improvers.LocationLocalSearch
 import problems.LocationProblem
 import solutions.{LocationSolution, Solution}
 
@@ -10,7 +11,8 @@ import scala.collection.mutable.ListBuffer
 /**
   * Created by hector on 1/18/17.
   */
-class PMedianGreedy(problem: LocationProblem) extends MultiRunnable{
+class PMedianGreedy(problem: LocationProblem) {
+  val improver: LocationLocalSearch = new LocationLocalSearch(problem)
 
   def solve(): LocationSolution = {
 
@@ -34,21 +36,22 @@ class PMedianGreedy(problem: LocationProblem) extends MultiRunnable{
       temporalValues.clear()
     }
 
-    solution
+    improver.improve(solution, notChosenLocations)
+    //solution
 
   }
 
-  private def initNotChosenLocations(locations: HashSet[Int]): Unit = {
+  protected def initNotChosenLocations(locations: HashSet[Int]): Unit = {
     for(i <- 0 until problem.locations)
       locations.add(i)
   }
 
-  private def initCosts(solution: LocationSolution): Unit = {
+  protected def initCosts(solution: LocationSolution): Unit = {
     for(i <- 0 until problem.clients)
       solution.costs.append(Int.MaxValue)
   }
 
-  private def evaluateLocation(solution: LocationSolution, candidate: Int): (Int, Int) = {
+  protected def evaluateLocation(solution: LocationSolution, candidate: Int): (Int, Int) = {
     var value: Int = 0
 
     for(i <- 0 until problem.clients){
@@ -61,7 +64,7 @@ class PMedianGreedy(problem: LocationProblem) extends MultiRunnable{
     (candidate, value)
   }
 
-  private def updateCosts(solution: LocationSolution): Unit = {
+  protected def updateCosts(solution: LocationSolution): Unit = {
     val costs:ArrayBuffer[Int] = ArrayBuffer[Int]()
 
     for(client <- 0 until problem.clients) {
@@ -75,16 +78,4 @@ class PMedianGreedy(problem: LocationProblem) extends MultiRunnable{
     solution.costs = costs
   }
 
-  override def multiRun(arguments: List[Any]): List[Solution] = {
-    val solutions = ListBuffer[Solution]()
-
-    for(argument <- arguments){
-      //Cast Any to Int using pattern matching
-      val intArg = argument match {case n:Number => n.intValue()
-      case x => throw new IllegalArgumentException(s"$x is not a number.")}
-
-      solutions.append(solve())
-    }
-    solutions.toList
-  }
 }
