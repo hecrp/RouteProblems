@@ -2,31 +2,31 @@ package improvers
 
 import problems.LocationProblem
 import solutions.LocationSolution
-
-import scala.collection.mutable.{ArrayBuffer, HashSet}
+import scala.collection.mutable
 
 /**
   * Created by hector on 1/14/17.
   */
 class LocationLocalSearch(problem: LocationProblem) extends LocationImprover(problem) {
-  override def improve(initialSolution: LocationSolution, notChosenLocations: HashSet[Int]): LocationSolution = {
+  override def improve(initialSolution: LocationSolution): LocationSolution = {
     var bestSolution: LocationSolution = initialSolution
     var candidate: LocationSolution = new LocationSolution(initialSolution.chosenLocations.size)
     var improve = 0
 
+    val notChosenLocations = getNotChosenLocations(initialSolution)
+
     while(improve < 5000) {
-      for(i <- initialSolution.chosenLocations.indices) {
+      for(locationToRemove <- initialSolution.chosenLocations) {
         for(notChosen <- notChosenLocations){
           candidate = buildCandidateFrom(initialSolution)
 
-          var removedLocation = candidate.chosenLocations(i)
-          candidate.removeElement(i)
+          candidate.removeElement(locationToRemove)
           candidate.addElement(notChosen, 0)
-          updateCosts(candidate)
+          candidate.updateCosts(problem)
 
           if(candidate.value < bestSolution.value) {
             bestSolution = candidate
-            notChosenLocations.add(removedLocation)
+            notChosenLocations.add(locationToRemove)
             improve = 0
           }
           else
@@ -37,27 +37,24 @@ class LocationLocalSearch(problem: LocationProblem) extends LocationImprover(pro
     bestSolution
   }
 
-  def updateCosts(solution: LocationSolution): Unit = {
-    val costs:ArrayBuffer[Int] = ArrayBuffer[Int]()
+  def getNotChosenLocations(solution: LocationSolution): mutable.BitSet = {
+    val notChosenLocations = mutable.BitSet.empty
 
-    for(client <- 0 until problem.clients) {
-      var minCost = Int.MaxValue
-      for(location <- solution.chosenLocations) {
-        if(problem.distanceMatrix(location)(client) < minCost)
-          minCost = problem.distanceMatrix(location)(client)
-      }
-      costs.append(minCost)
-    }
-    solution.costs = costs
-    solution.value = costs.sum
+    for (i <- 0 until problem.locations)
+      if(!solution.isInSolution(i))
+        notChosenLocations.add(i)
+
+    notChosenLocations
   }
+
 
   def buildCandidateFrom(solution: LocationSolution): LocationSolution = {
     val candidate = new LocationSolution(solution.chosenLocations.size)
 
     for(node <- solution.chosenLocations)
       candidate.addElement(node, 0)
-    candidate.value = solution.costs.sum
+    candidate.updateCosts(problem)
+
     candidate
   }
 

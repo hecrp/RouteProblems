@@ -9,6 +9,6 @@ import scala.collection.mutable.HashSet
   * Created by hector on 1/18/17.
   */
 abstract class LocationImprover(problem: LocationProblem) {
-  def improve(initialSolution: LocationSolution, notChosenLocations: HashSet[Int]): LocationSolution
+  def improve(initialSolution: LocationSolution): LocationSolution
 
 }

@@ -40,7 +40,13 @@ class PMedianGRASP(problem: LocationProblem) extends PMedianGreedy(problem) with
       updateCosts(solution)
       temporalValues.clear()
     }
-    improver.improve(solution, notChosenLocations)
+    improver.improve(solution)
+  }
+
+  def initNotChosenLocations(notChosenSet: HashSet[Int]) = {
+    for(i <- 0 until problem.locations)
+      notChosenSet.add(i)
+    notChosenSet
   }
 
   override def multiRun(arguments: List[Any]): List[Solution] = {

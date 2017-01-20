@@ -19,7 +19,7 @@ object App {
     new TSPNNGRASP(TSPproblem).multiRun(TSPArguments).foreach(println(_))
     */
     val PMedianParsedFile = PMedianParser.parse("graphs/pmedian/pmed17.txt.table.p100.A.txt")
-    var PMEDIANproblem = new LocationProblem(PMedianParsedFile._1, 200, 200, 100)
+    var PMEDIANproblem = new LocationProblem(PMedianParsedFile._1, 200, 200, 10)
     println("P-MEDIAN GREEDY\n")
     println(new PMedianGreedy(PMEDIANproblem).solve())
     println("P-MEDIAN GRASP\n")

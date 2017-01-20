@@ -1,6 +1,6 @@
 package solvers
 
-import improvers.LocationLocalSearch
+import improvers.{LocationLocalSearch, LocationSimmulatedAnnealing}
 import problems.LocationProblem
 import solutions.{LocationSolution, Solution}
 
@@ -12,21 +12,21 @@ import scala.collection.mutable.ListBuffer
   * Created by hector on 1/18/17.
   */
 class PMedianGreedy(problem: LocationProblem) {
-  val improver: LocationLocalSearch = new LocationLocalSearch(problem)
+  val improver: LocationSimmulatedAnnealing = new LocationSimmulatedAnnealing(problem)
+  //val improver: LocationLocalSearch = new LocationLocalSearch(problem)
+
 
   def solve(): LocationSolution = {
 
     val solution: LocationSolution = new LocationSolution(problem.p)
-    val notChosenLocations: HashSet[Int] = new HashSet()
     val temporalValues: ArrayBuffer[(Int, Int)] = new ArrayBuffer[(Int, Int)]()
 
-    initNotChosenLocations(notChosenLocations)
     initCosts(solution)
 
 
     while(! solution.isComplete){
 
-      for(i <- notChosenLocations) {
+      for(i <- 0 until (problem.locations - solution.chosenLocations.size)) {
         temporalValues.append(evaluateLocation(solution, i))
       }
 
@@ -36,14 +36,9 @@ class PMedianGreedy(problem: LocationProblem) {
       temporalValues.clear()
     }
 
-    improver.improve(solution, notChosenLocations)
+    improver.improve(solution)
     //solution
 
-  }
-
-  protected def initNotChosenLocations(locations: HashSet[Int]): Unit = {
-    for(i <- 0 until problem.locations)
-      locations.add(i)
   }
 
   protected def initCosts(solution: LocationSolution): Unit = {
